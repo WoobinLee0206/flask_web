@@ -16,13 +16,13 @@ def about():
     # return "TEST"
     return render_template('about.html', hello = "GaryKim")
 
-@app.route('/articles')
+@app.route('/articles', methods = ['GET', 'POST'])
 def articles():
     print("Success")
     # return "TEST"
     articles = Articles()
     print(len(articles))
-    return render_template('articles.html', a = articles)
+    return render_template('articles.html', articles = articles)
 
 if __name__ == '__main__' :
     # app.run(host = '0.0.0.0', port = '8080')

@@ -8,22 +8,23 @@
     <table class="table">
       <thead class="thead-dark">
         <tr>
-          <th scope="col">숫자</th>
+          <th scope="col">number</th>
           <th scope="col">id</th>
-          <th scope="col">title</th>
           <th scope="col">description</th>
           <th scope="col">author</th>
           <th scope="col">date</th>
+          <th scope="col">edit</th>
         </tr>
       </thead>
       <tbody>
-        {% for a in [1, 2, 3, 4, 5] %}
+        {% for article in articles %}
         <tr>
-          <th scope="row">{{ a }}</th>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>@mdo</td>  
+          <th scope="row">{{ article['id'] }}</th>
+          <td>{{ article['title'] }}</td>
+          <td>{{ article['body'] }}
+          <td>{{ article['author'] }}</td>
+          <td>{{ article['create_date'] }}</td>
+          <td><button type="button" class="btn btn-danger">edit</button></td>
         </tr>
         {% endfor %}
        
