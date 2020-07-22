@@ -1,6 +1,7 @@
 from flask import Flask ,render_template, flash, redirect, url_for, session, request, logging
 from data import Articles
 import pymysql
+from passlib.hash import pbkdf2_sha256
 
 app = Flask(__name__)
 app.debug=True
@@ -14,19 +15,34 @@ def index():
     # return "TEST"
     return render_template('home.html',hello="GaryKim")
 
-@app.route('/register',methods=['GET' ,'POST'])
+@app.route('/login', methods = ['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        return "LOGED PAGE"
+    
+    else :
+        return "LOGIN PAGE"
+
+
+
+
+
+
+
+
+@app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
         # data = request.body.get('author')
         name = request.form.get('name')
         email = request.form.get('email')
-        password = request.form.get('password')
+        password = pbkdf2_sha256.hash(request.form.get('password'))
         re_password = request.form.get('re_password')
         username = request.form.get('username')
         # name = form.name.data
 
-        if(password == re_password):
-            print([name, email , password , re_password , username])
+        if(pbkdf2_sha256.verify(re_password, password)):
+            print(pbkdf2_sha256.verify(re_password, password))
             cursor = db.cursor()
             sql = '''
                 INSERT INTO users (name, email, username, password) 
