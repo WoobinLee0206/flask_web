@@ -24,7 +24,7 @@ def register():
         re_password = request.form.get('re_password')
         username = request.form.get('username')
         # name = form.name.data
-        
+
         if(password == re_password):
             print([name, email , password , re_password , username])
             cursor = db.cursor()
@@ -34,15 +34,16 @@ def register():
              '''
             cursor.execute(sql, (name, email, username, password))
             db.commit()
-            db.close()
             # cursor = db.cursor()
             # cursor.execute('SELECT * FROM users;')
             # users = cursor.fetchall()
             return "register Success"
         else:
             return "Invalid Password"
+        
+        db.close()
     else:
-        return "GET Success"
+        return render_template('register.html')
 
 
 
