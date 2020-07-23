@@ -1,5 +1,5 @@
 from flask import Flask ,render_template, flash, redirect, url_for, session, request, logging
-from data import Articles
+# from data import Articles
 import pymysql
 from passlib.hash import pbkdf2_sha256
 
@@ -90,17 +90,20 @@ def articles():
     sql = 'SELECT * FROM topic;'
     cursor.execute(sql)
     data = cursor.fetchall()
-    print(data)
+    # print(data)
     return render_template('articles.html', articles = data)
 
 
-@app.route('/article/<int:id>')
+@app.route('/article/<string:id>')
 def article(id):
-    print(type(id))
-    articles= Articles()[id-1]
-    # print(articles)
-    return render_template('article.html',data = articles)
-    # return "Success"
+    # print(type(id))
+    # articles= Articles()[id-1]
+    cursor = db.cursor()
+    sql = 'SELECT * FROM topic WHERE id = %s;'
+    cursor.execute(sql, [id])
+    topic = cursor.fetchone()
+    # print(topic)
+    return render_template('article.html', data = topic)
 
 @app.route('/add_articles', methods = ['GET', 'POST'])
 def add_articles():
@@ -111,15 +114,45 @@ def add_articles():
         cursor = db.cursor()
         sql = ''' 
         INSERT INTO topic (title, body, author) 
-                VALUES (%s ,%s, %s)
+                VALUES (%s, %s, %s)
         '''
         cursor.execute(sql, (title, body, author))
         db.commit()
-        return redirect("/articles")
+        return redirect('/articles')
     else:
         return render_template('add_articles.html')
     db.close()
 
+@app.route('/article/<string:id>/edit_article', methods=['GET', 'POST'])
+def edit_article(id):
+    if request.method == "POST":
+        title = request.form['title']
+        body = request.form['body']
+        author = request.form['author']
+        cursor = db.cursor()
+        sql = ''' 
+        UPDATE `topic` SET `title` = %s, `body` = %s, `author` = %s WHERE `id` = %s;
+        '''
+        cursor.execute(sql, (title, body, author, id))
+        db.commit()
+        # print(title)
+        return redirect(url_for('articles'))
+    else :
+        print(id)
+        cursor = db.cursor()
+        sql = 'SELECT * FROM topic WHERE id = %s;'
+        cursor.execute(sql, [id])
+        topic = cursor.fetchone()
+        return render_template('edit_article.html', data = topic)
+    db.close()
+
+@app.route('/delete/<string:id>', methods = ['POST'])
+def delete(id):
+    cursor = db.cursor()
+    sql = 'DELETE FROM topic WHERE id = %s;'
+    cursor.execute(sql, [id])
+    db.commit()
+    return redirect(url_for('articles'))
 
 
 if __name__ =='__main__':
