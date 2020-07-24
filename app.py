@@ -24,24 +24,24 @@ def is_logged_in(f):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        id = request.form.get('email')
+        id = request.form.get('username')
         pw = request.form.get('password')
         # print([id , pw])
 
-        sql='SELECT * FROM users WHERE email = %s'
+        sql='SELECT * FROM users WHERE username = %s'
         cursor  = db.cursor()
         cursor.execute(sql, [id])
         users = cursor.fetchone()
-        print(users)
-
+        # print(users)
+        
         if users == None:
             return redirect(url_for('login'))
         else:
             if pbkdf2_sha256.verify(pw, users[4]):
                 session['is_logged'] = True
                 session['username'] = users[2]
-                print(session)
-                return redirect(url_for('articles'))
+                # print(session)
+                return redirect('/')
             else:
                 return redirect(url_for('login'))
         
@@ -49,10 +49,20 @@ def login():
     else:
         return render_template('login.html')
 
+def is_admin(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if session['username'] == 'ADMIN':
+            return render_template('admin.html')
+        else:
+            return f(*args, **kwargs)
+    return wrap
+
 @app.route('/')
 @is_logged_in
+@is_admin
 def index():
-    print("Success")
+    # print("Success")
     # session['test'] = "Woobin Lee"
     # session_data = session
     # print(session_data)
@@ -62,7 +72,7 @@ def index():
 @app.route('/about')
 @is_logged_in
 def about():
-    print("Success")
+    # print("Success")
     # return "TEST"
     return render_template('about.html')
 
@@ -88,23 +98,29 @@ def register():
         username = request.form.get('username')
         # name = form.name.data
 
-        if(pbkdf2_sha256.verify(re_password, password)):
-            print(pbkdf2_sha256.verify(re_password, password))
-            cursor = db.cursor()
-            sql = '''
-                INSERT INTO users (name, email, username, password) 
-                VALUES (%s ,%s, %s, %s)
-             '''
-            cursor.execute(sql, (name, email, username, password))
-            db.commit()
-            # cursor = db.cursor()
-            # cursor.execute('SELECT * FROM users;')
-            # users = cursor.fetchall()
+        cursor = db.cursor()
+        sql = 'SELECT username FROM users WHERE username = %s'
+        cursor.execute(sql, [username])
+        username_one = cursor.fetchone()
+        if username_one:
+            return redirect(url_for('register'))
 
-            return redirect(url_for('login'))
         else:
-            return "Invalid Password"
-        
+            if(pbkdf2_sha256.verify(re_password, password)):
+                # print(pbkdf2_sha256.verify(re_password, password))
+                sql = '''
+                    INSERT INTO users (name, email, username, password) 
+                    VALUES (%s ,%s, %s, %s)
+                '''
+                cursor.execute(sql, (name, email, username, password))
+                db.commit()
+                # cursor = db.cursor()
+                # cursor.execute('SELECT * FROM users;')
+                # users = cursor.fetchall()
+
+                return redirect(url_for('login'))
+            else:
+                return redirect(url_for('register'))
         db.close()
     else:
         return render_template('register.html')
@@ -169,7 +185,7 @@ def edit_article(id):
         # print(title)
         return redirect(url_for('articles'))
     else :
-        print(id)
+        # print(id)
         cursor = db.cursor()
         sql = 'SELECT * FROM topic WHERE id = %s;'
         cursor.execute(sql, [id])
